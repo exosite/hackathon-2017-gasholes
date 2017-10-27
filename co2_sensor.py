@@ -31,6 +31,7 @@ class Murano(threading.Thread, Device):
         self.q_in = Queue.Queue()
         self._kill = False
         if WORKING_ON_BEAGLEBONE:
+            print("Setting up ADC for beaglebone...")
             ADC.setup()
 
     def run(self):
