@@ -8,9 +8,9 @@ import threading, Queue
 import time
 import math
 
-from exo.api import ExositeAPI
+from exo.device import Device
 
-class Murano(threading.Thread, ExositeAPI):
+class Murano(threading.Thread, Device):
     # total co2 volume
     # abv
     # beer temp
@@ -22,12 +22,7 @@ class Murano(threading.Thread, ExositeAPI):
         threading.Thread.__init__(self)
         self.setDaemon(True)
         self.name = self.__class__.__name__
-
-        exo_args = {
-            "host": "e196r78puegao0000.m2.exosite.io",
-        }
-
-        ExositeAPI.__init__(self, exo_args)
+        Device.__init__(self, "Gasholes-v1", 'gasholes.cfg')
         self.q_in = Queue.Queue()
         self._kill = False
 
