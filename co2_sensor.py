@@ -149,9 +149,10 @@ class Bubble(threading.Thread):
                 self.abv = self.vol_co2_to_abv(self.bubble_volume_total, self.fermentation_volume)
                 # print("starts: ", len(starts))
                 # print("finishes: ", len(finishes))
-                # print("total Co2 volume (L): ", bubble_volume_total)
-                # print("bubble_rate (bubbles/s): ", rate)
-                # print("abv (%): ", abv)
+                if self.in_bubble:
+                    print("total Co2 volume (L): ", bubble_volume_total)
+                    print("bubble_rate (bubbles/s): ", rate)
+                    print("abv (%): ", abv)
 
 
 
