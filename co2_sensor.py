@@ -78,10 +78,10 @@ class PhotoDiode(threading.Thread):
             else:
                 multiplier = 0.9
             if val >= nominal_level * multiplier:
-                self.q_out.put(False)
+                self.q_out.put(True)
             else:
                 # print("No bubble")
-                self.q_out.put(True)
+                self.q_out.put(False)
             time.sleep(0.05)
 
 
