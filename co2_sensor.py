@@ -16,9 +16,9 @@ class PhotoDiode(threading.Thread):
         return hat.analog.one.read()
     def run(self):
 
-        init_val = self.read()
+        init_val = self._read()
         while True:
-            self.q_out.put(self.read())
+            self.q_out.put(self._read())
             sleep(0.05)
 def main():
     photosensor = PhotoDiode()
