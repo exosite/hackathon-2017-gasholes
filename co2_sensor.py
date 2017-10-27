@@ -207,17 +207,17 @@ class Bubble(threading.Thread):
                     beer_temp = ADC.read('P9_37')
                 else:
                     beer_temp = hat.analog.one.read()
-                self.murano_thread_q.put(json.dumps(
-                    {
-                        "beer_temperature": beer_temp,
-                        "co2_volume": self.bubble_volume_total,
-                        "abv": self.abv,
-                        "bubble_rate": rate,
-                        "bubble_total": self.bubble_count,
-                        "start_time": self.system_start,
-                        "brew_volume": self.fermentation_volume
-                    })
-                )
+                blob = {
+                    "beer_temperature": beer_temp,
+                    "co2_volume": self.bubble_volume_total,
+                    "abv": self.abv,
+                    "bubble_rate": rate,
+                    "bubble_total": self.bubble_count,
+                    "start_time": self.system_start,
+                    "brew_volume": self.fermentation_volume
+                }
+                print(json.dumps(blob, indent=2))
+                self.murano_thread_q.put(json.dumps(blob))
 
 
 ############################
