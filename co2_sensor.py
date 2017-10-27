@@ -74,7 +74,6 @@ class Bubble(threading.Thread):
         #fermentation volume in liters
         self.fermentation_volume = frmtn_vol
         self.abv = 0
-        self.bubble_rate = 0
         self.q_in = Queue.Queue()
         self._kill = False
         print("Bubble thread initialized...")
@@ -151,16 +150,16 @@ class Bubble(threading.Thread):
 
             # get avg bubble rate over the entire session
             # could be improved by looking at a rolling average
-            self.bubble_rate = self.bubble_rate(30)
+            rate = self.bubble_rate(30)
 
             # get abv of the beer
             self.abv = self.vol_co2_to_abv(self.bubble_volume_total, self.fermentation_volume)
             # print("starts: ", len(starts))
             # print("finishes: ", len(finishes))
             if self.in_bubble:
-                print("total Co2 volume (L): ", bubble_volume_total)
+                print("total Co2 volume (L): ", self.bubble_volume_total)
                 print("bubble_rate (bubbles/s): ", rate)
-                print("abv (%): ", abv)
+                print("abv (%): ", self.abv)
             else:
                 print("Not in bubble.")
 
