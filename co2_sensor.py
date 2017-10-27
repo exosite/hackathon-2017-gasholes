@@ -53,7 +53,7 @@ class PhotoDiode(threading.Thread):
     def _read(self):
         if WORKING_ON_BEAGLEBONE:
             val = ADC.read('P9_40')
-            print("Reading from beaglebone: {}".format(val))
+            # print("Reading from beaglebone: {}".format(val))
             return val
         return hat.analog.one.read()
 
@@ -72,7 +72,11 @@ class PhotoDiode(threading.Thread):
         nominal_level = self.get_nominal_level()
         while not self._kill:
             val = self._read()
-            if val <= nominal_level * 0.9:
+            if WORKING_ON_BEAGLEBONE:
+                multiplier = 0.5
+            else:
+                multiplier = 0.9
+            if val <= nominal_level * multiplier:
 		# print("Found bubble")
                 self.q_out.put(True)
             else:
