@@ -203,7 +203,7 @@ class Bubble(threading.Thread):
                 else:
                     beer_temp = hat.analog.one.read()
                 blob = {
-                    "beer_temperature": beer_temp,
+                    "beer_temperature": (beer_temp*18+5)/10 + 32,
                     "co2_volume": self.bubble_volume_total,
                     "abv": self.abv,
                     "bubble_rate": rate,
