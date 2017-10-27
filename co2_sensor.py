@@ -19,11 +19,12 @@ class PhotoDiode(threading.Thread):
 
     def get_nominal_level(self):
         level = 0.0
-        for i in range(0,1000):
+        for i in range(0,150):
             tmp = self._read()
-            time.sleep(0.1)
-            if tmp < self._read():
+            time.sleep(0.01)
+            if tmp > self._read():
                 level = tmp
+        print("Found nominal level: {}".format(level))
         return level
 
     def run(self):
@@ -31,10 +32,12 @@ class PhotoDiode(threading.Thread):
         nominal_level = self.get_nominal_level()
         while not self._kill:
             val = self._read()
-            if val > nominal_level * 1.1:
-
+            if val <= nominal_level * 0.9:
+		# print("Found bubble")
                 self.q_out.put(True)
-            self.q_out.put(False)
+            else:
+                # print("No bubble")
+                self.q_out.put(False)
             time.sleep(0.05)
 
 
@@ -47,7 +50,7 @@ class Bubble(threading.Thread):
         threading.Thread.__init__(self)
         self.setDaemon(True)
         self.name = self.__class__.__name__
-
+        
         # assume a constant speed in lieu of being able to measure this
         self.speed = 0.03/3600*5280*12 # inches/second
         # internal diameter of piping
@@ -74,6 +77,7 @@ class Bubble(threading.Thread):
         self.bubble_rate = 0
         self.q_in = Queue.Queue()
         self._kill = False
+        print("Bubble thread initialized...")
 
         def bubble_length(speed, start_time, finish_time):
             # calculate the length of the bubble using the speed and the time delta
@@ -110,13 +114,19 @@ class Bubble(threading.Thread):
             gm_per_ml = gm_per_liter / 100
 
             return gm_per_ml
-
+        def start(self):
+            print("Starting bubble thread...")
+            self.run()
         def run(self):
             # main loop
+            print("Starting bubble loop...")
             while not self._kill:
                 try:
+                    print(".")
                     self.in_bubble = self.q_in.get(timeout=1.0)
+                    print("In bubble? {}".format(self.in_bubble))
                 except Queue.Empty:
+                    print("appraently, I'm not getting any data.")
                     continue
                 # handle new bubble
                 if self.in_bubble == True and len(self.starts) == len(self.finishes):
@@ -153,7 +163,8 @@ class Bubble(threading.Thread):
                     print("total Co2 volume (L): ", bubble_volume_total)
                     print("bubble_rate (bubbles/s): ", rate)
                     print("abv (%): ", abv)
-
+                else:
+                    print("Not in bubble.")
 
 
 ############################
@@ -169,7 +180,9 @@ def main(vol):
         while True:
             try:
                 bubble.q_in.put(photosensor.q_out.get(timeout = 1.0))
+                print("main: active threads: {}".format([ (t.name, t.is_alive()) for t in threading.enumerate()]))
             except Queue.Empty:
+                print("No data")
                 continue
     except KeyboardInterrupt:
         photosensor._kill = True
