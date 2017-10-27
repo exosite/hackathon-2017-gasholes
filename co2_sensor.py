@@ -114,8 +114,10 @@ class Bubble(threading.Thread):
         def run(self):
             # main loop
             while not self._kill:
-
-                self.in_bubble = self.q_in.get(timeout=1.0)
+                try:
+                    self.in_bubble = self.q_in.get(timeout=1.0)
+                except Queue.Empty:
+                    continue
                 # handle new bubble
                 if self.in_bubble == True and len(self.starts) == len(self.finishes):
                     # put the current time in the starts list
@@ -164,7 +166,10 @@ def main(vol):
     bubble.start()
     try:
         while True:
-            bubble.q_in.put(photosensor.q_out.get(timeout = 1.0))
+            try:
+                bubble.q_in.put(photosensor.q_out.get(timeout = 1.0))
+            except Queue.Empty:
+                continue
     except KeyboardInterrupt:
         photosensor._kill = True
         bubble._kill = True
