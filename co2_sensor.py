@@ -119,11 +119,9 @@ class Bubble(threading.Thread):
         print("Starting bubble loop...")
         while not self._kill:
             try:
-                print(".")
                 self.in_bubble = self.q_in.get(timeout=1.0)
                 print("In bubble? {}".format(self.in_bubble))
             except Queue.Empty:
-                print("appraently, I'm not getting any data.")
                 continue
             # handle new bubble
             if self.in_bubble == True and len(self.starts) == len(self.finishes):
@@ -176,10 +174,10 @@ def main(vol):
     try:
         while True:
             try:
-                bubble.q_in.put(photosensor.q_out.get(timeout = 1.0))
-                print("main: active threads: {}".format([ (t.name, t.is_alive()) for t in threading.enumerate()]))
+                bubble.q_in.put(photosensor.q_out.get(timeout=1.0))
+                # print("main: active threads: {}".format([ (t.name, t.is_alive()) for t in threading.enumerate()]))
             except Queue.Empty:
-                print("No data")
+                # print("No data")
                 continue
     except KeyboardInterrupt:
         photosensor._kill = True
