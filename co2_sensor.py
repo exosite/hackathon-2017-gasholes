@@ -120,17 +120,17 @@ class Bubble(threading.Thread):
         while not self._kill:
             try:
                 self.in_bubble = self.q_in.get(timeout=1.0)
-                print("In bubble? {}".format(self.in_bubble))
+                # print("In bubble? {}".format(self.in_bubble))
             except Queue.Empty:
                 continue
-            # handle new bubble
+            # handle new bubble - am I in a bubble now, and I wasn't before?
             if self.in_bubble == True and len(self.starts) == len(self.finishes):
                 # put the current time in the starts list
                 self.starts.append(time.time())
                 # increment bubble count
                 self.bubble_count += 1
 
-            # handle bubble that is now gone
+            # handle bubble that is now gone - am I not in a bubble and was I before?
             if self.in_bubble == False and len(self.starts) != len(self.finishes):
                 # put the current time in the finishes list
                 self.finishes.append(time.time())
@@ -146,20 +146,17 @@ class Bubble(threading.Thread):
                 self.bubble_volume_total += self.cubic_in_to_liters(volume)
                 # print(volume)
 
-            # get avg bubble rate over the entire session
-            # could be improved by looking at a rolling average
-            rate = self.bubble_rate(30)
+                # get avg bubble rate over the entire session
+                # could be improved by looking at a rolling average
+                rate = self.bubble_rate(30)
 
-            # get abv of the beer
-            self.abv = self.vol_co2_to_abv(self.bubble_volume_total, self.fermentation_volume)
-            # print("starts: ", len(starts))
-            # print("finishes: ", len(finishes))
-            if self.in_bubble:
+                # get abv of the beer
+                self.abv = self.vol_co2_to_abv(self.bubble_volume_total, self.fermentation_volume)
+                # print("starts: ", len(starts))
+                # print("finishes: ", len(finishes))
                 print("total Co2 volume (L): ", self.bubble_volume_total)
                 print("bubble_rate (bubbles/s): ", rate)
                 print("abv (%): ", self.abv)
-            else:
-                print("Not in bubble.")
 
 
 ############################
