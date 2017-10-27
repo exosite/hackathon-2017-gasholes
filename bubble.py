@@ -42,8 +42,8 @@ def cubic_in_to_liters(cubic_inches):
 
 def bubble_rate(rolling_seconds):
   # rolling avg bubbles per second
-  bubbles = len([b for b in starts if b >= time.time()])
-  # return bubbles/seconds
+  bubbles = len([b for b in starts if b >= time.time() - 30])
+  return bubbles/rolling_seconds
 
 def vol_co2_to_abv(vol_co2, fermentation_volume):
   # convert volume of co2 in liters to moles of co2
