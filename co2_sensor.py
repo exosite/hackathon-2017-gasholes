@@ -60,10 +60,10 @@ class PhotoDiode(threading.Thread):
 
     def get_nominal_level(self):
         level = 0.0
-        for _ in range(0, 150):
+        for _ in range(0, 450):
             tmp = self._read()
             time.sleep(0.01)
-            if tmp > self._read():
+            if tmp < self._read():
                 level = tmp
         print("Found nominal level: {}".format(level))
         return level
@@ -77,12 +77,11 @@ class PhotoDiode(threading.Thread):
                 multiplier = 0.9
             else:
                 multiplier = 0.9
-            if val <= nominal_level * multiplier:
-		# print("Found bubble")
-                self.q_out.put(True)
+            if val >= nominal_level * multiplier:
+                self.q_out.put(False)
             else:
                 # print("No bubble")
-                self.q_out.put(False)
+                self.q_out.put(True)
             time.sleep(0.05)
 
 
