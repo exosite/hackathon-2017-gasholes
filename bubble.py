@@ -12,6 +12,9 @@ finishes = []
 bubble_count = 0
 bubble_volume_total = 0
 
+#fermentation volume in liters
+fermentation_volume = 0
+
 def bubble_length(speed, start_time, finish_time):
   return speed * (finish_time - start_time)
 
@@ -25,7 +28,27 @@ def abv():
 def bubble_rate(bubbles, seconds): # bubbles per second
   return bubble_count/seconds
 
+def vol_co2_to_abv(vol_co2, fermentation_volume):
+  #convert volume of co2 in liters to moles of co2
+  # 0.042mole/liter calculated by RTP (room temperature and 1 atmosphere): 24 liters/mole
+  co2_mol = vol_co2 * 0.042
+
+  #then we know the for every mole of co2 then there the same amount of ethanol
+  eth_mol = co2_mol
+
+  #then convert to concentration of ethanol
+  eth_conc = eth_mol/fermentation_volume
+
+  #then convert that to %abv 46 (gm/mole)
+  abv = eth_mol * 46
+
+  return abv
+
+
 while True:
+  fermentation_volume = input("how many liters are you brewing? ")
+  vol_co2 = input("enter vol in L")
+  print(vol_co2_to_abv(vol_co2, fermentation_volume))
   in_bubble = input("are you in a bubble? True/False: ")
   in_bubble = bool(in_bubble)
   # print(in_bubble)
