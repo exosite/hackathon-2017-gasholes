@@ -198,11 +198,7 @@ class Bubble(threading.Thread):
 
                 # get abv of the beer
                 self.abv = self.vol_co2_to_abv(self.bubble_volume_total, self.fermentation_volume)
-                # print("starts: ", len(starts))
-                # print("finishes: ", len(finishes))
-                print("total Co2 volume (L): ", self.bubble_volume_total)
-                print("bubble_rate (bubbles/s): ", rate)
-                print("abv (%): ", self.abv)
+
                 if WORKING_ON_BEAGLEBONE:
                     beer_temp = ADC.read('P9_37')
                 else:
