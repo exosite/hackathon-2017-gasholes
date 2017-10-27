@@ -12,6 +12,7 @@ class PhotoDiode(threading.Thread):
         self.setDaemon(True)
         self.name = self.__class__.__name__
         self.q_out = Queue.Queue()
+        self._kill = False
 
     def _read(self):
         return hat.analog.one.read()
@@ -28,7 +29,7 @@ class PhotoDiode(threading.Thread):
     def run(self):
 
         nominal_level = self.get_nominal_level()
-        while True:
+        while not self._kill:
             val = self._read()
             if val > nominal_level * 1.1:
 
@@ -72,6 +73,7 @@ class Bubble(threading.Thread):
         self.abv = 0
         self.bubble_rate = 0
         self.q_in = Queue.Queue()
+        self._kill = False
 
         def bubble_length(speed, start_time, finish_time):
             # calculate the length of the bubble using the speed and the time delta
@@ -111,9 +113,9 @@ class Bubble(threading.Thread):
 
         def run(self):
             # main loop
-            while True:
+            while not self._kill:
 
-                self.in_bubble = self.q_in.get()
+                self.in_bubble = self.q_in.get(timeout=1.0)
                 # handle new bubble
                 if self.in_bubble == True and len(self.starts) == len(self.finishes):
                     # put the current time in the starts list
@@ -160,8 +162,12 @@ def main(vol):
 
     bubble = Bubble(vol)
     bubble.start()
-    while True:
-        bubble.q_in.put(photosensor.q_out.get())
+    try:
+        while True:
+            bubble.q_in.put(photosensor.q_out.get(timeout = 1.0))
+    except KeyboardInterrupt:
+        photosensor._kill = True
+        bubble._kill = True
 
 if __name__ == '__main__':
     fermentation_volume = input("What is the fermentation volume (in Liters)? ")
