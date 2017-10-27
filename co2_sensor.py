@@ -32,7 +32,7 @@ class PhotoDiode(threading.Thread):
         nominal_level = self.get_nominal_level()
         while not self._kill:
             val = self._read()
-            if val <= nominal_level * 0.5:
+            if val <= nominal_level * 0.8:
 		# print("Found bubble")
                 self.q_out.put(True)
             else:
