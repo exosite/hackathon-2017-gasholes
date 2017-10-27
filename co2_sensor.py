@@ -95,7 +95,7 @@ class Bubble(threading.Thread):
     def bubble_rate(self, rolling_seconds):
         # rolling avg bubbles per second
         bubbles = len([b for b in self.starts if b >= time.time() - rolling_seconds])
-        return bubbles/rolling_seconds
+        return bubbles/float(rolling_seconds)
 
     def vol_co2_to_abv(self, vol_co2, fermentation_volume):
         # convert volume of co2 in liters to moles of co2
