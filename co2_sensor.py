@@ -2,7 +2,12 @@
 
 # pylint: disable=C0325,R0201,C0111
 
-import automationhat as hat
+WORKING_ON_BEAGLEBONE = True
+if not WORKING_ON_BEAGLEBONE:
+    import automationhat as hat
+else:
+    import Adafruit_BBIO.ADC as ADC
+
 import threading, Queue
 
 import time
@@ -41,6 +46,9 @@ class PhotoDiode(threading.Thread):
         self._kill = False
 
     def _read(self):
+        if WORKING_ON_BEAGLEBONE:
+            ADC.setup()
+            return ADC.read('P9_40')
         return hat.analog.one.read()
 
     def get_nominal_level(self):
