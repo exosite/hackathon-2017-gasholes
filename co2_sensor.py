@@ -241,5 +241,5 @@ def main(vol):
         murano._kill = True
 
 if __name__ == '__main__':
-    ferm_vol = input("What is the fermentation volume (in Liters)? ")
-    main(ferm_vol)
+
+    main(1.89) # liters
