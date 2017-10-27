@@ -79,92 +79,90 @@ class Bubble(threading.Thread):
         self._kill = False
         print("Bubble thread initialized...")
 
-        def bubble_length(speed, start_time, finish_time):
-            # calculate the length of the bubble using the speed and the time delta
-            # from start to finish
-            return speed * (finish_time - start_time)
+    def bubble_length(self, speed, start_time, finish_time):
+        # calculate the length of the bubble using the speed and the time delta
+        # from start to finish
+        return speed * (finish_time - start_time)
 
-        def bubble_volume(bubble_length, internal_d): # cubic inches
-            volume = math.pi * (internal_d / 2) ** 2 * bubble_length 
-            return volume
+    def bubble_volume(self, bubble_length, internal_d): # cubic inches
+        volume = math.pi * (internal_d / 2) ** 2 * bubble_length 
+        return volume
 
-        def cubic_in_to_liters(cubic_inches):
-            # convert Co2 volume in cubic inches to liters
-            liters = 0.016387064 * cubic_inches
-            return liters
+    def cubic_in_to_liters(self, cubic_inches):
+        # convert Co2 volume in cubic inches to liters
+        liters = 0.016387064 * cubic_inches
+        return liters
 
-        def bubble_rate(rolling_seconds):
-            # rolling avg bubbles per second
-            bubbles = len([b for b in self.starts if b >= time.time() - 30])
-            return bubbles/rolling_seconds
+    def bubble_rate(self, rolling_seconds):
+        # rolling avg bubbles per second
+        bubbles = len([b for b in self.starts if b >= time.time() - 30])
+        return bubbles/rolling_seconds
 
-        def vol_co2_to_abv(vol_co2, fermentation_volume):
-            # convert volume of co2 in liters to moles of co2
-            # 0.042mole/liter calculated by RTP (room temperature and 1 atmosphere): 24 liters/mole
-            co2_mol = vol_co2 * 0.042
+    def vol_co2_to_abv(self, vol_co2, fermentation_volume):
+        # convert volume of co2 in liters to moles of co2
+        # 0.042mole/liter calculated by RTP (room temperature and 1 atmosphere): 24 liters/mole
+        co2_mol = vol_co2 * 0.042
 
-            # then we know the for every mole of co2 then there the same amount of ethanol
-            eth_mol = co2_mol
+        # then we know the for every mole of co2 then there the same amount of ethanol
+        eth_mol = co2_mol
 
-            # then convert to concentration of ethanol
-            eth_conc = eth_mol/fermentation_volume
+        # then convert to concentration of ethanol
+        eth_conc = eth_mol/fermentation_volume
 
-            # then convert that to %abv 46 (gm/mole)
-            gm_per_liter = eth_conc * 46
-            gm_per_ml = gm_per_liter / 100
+        # then convert that to %abv 46 (gm/mole)
+        gm_per_liter = eth_conc * 46
+        gm_per_ml = gm_per_liter / 100
 
-            return gm_per_ml
-        def start(self):
-            print("Starting bubble thread...")
-            self.run()
-        def run(self):
-            # main loop
-            print("Starting bubble loop...")
-            while not self._kill:
-                try:
-                    print(".")
-                    self.in_bubble = self.q_in.get(timeout=1.0)
-                    print("In bubble? {}".format(self.in_bubble))
-                except Queue.Empty:
-                    print("appraently, I'm not getting any data.")
-                    continue
-                # handle new bubble
-                if self.in_bubble == True and len(self.starts) == len(self.finishes):
-                    # put the current time in the starts list
-                    self.starts.append(time.time())
-                    # increment bubble count
-                    self.bubble_count += 1
+        return gm_per_ml
 
-                # handle bubble that is now gone
-                if self.in_bubble == False and len(self.starts) != len(self.finishes):
-                    # put the current time in the finishes list
-                    self.finishes.append(time.time())
-                    # get the length of the bubble
-                    length = self.bubble_length(
-                        self.speed,
-                        self.starts[self.bubble_count - 1],
-                        self.finishes[self.bubble_count - 1]
-                    )
-                    # get the volume of the bubble
-                    volume = self.bubble_volume(length, self.internal_d)
-                    # add volume to total volume counter
-                    self.bubble_volume_total += self.cubic_in_to_liters(volume)
-                    # print(volume)
+    def run(self):
+        # main loop
+        print("Starting bubble loop...")
+        while not self._kill:
+            try:
+                print(".")
+                self.in_bubble = self.q_in.get(timeout=1.0)
+                print("In bubble? {}".format(self.in_bubble))
+            except Queue.Empty:
+                print("appraently, I'm not getting any data.")
+                continue
+            # handle new bubble
+            if self.in_bubble == True and len(self.starts) == len(self.finishes):
+                # put the current time in the starts list
+                self.starts.append(time.time())
+                # increment bubble count
+                self.bubble_count += 1
 
-                # get avg bubble rate over the entire session
-                # could be improved by looking at a rolling average
-                self.bubble_rate = self.bubble_rate(30)
+            # handle bubble that is now gone
+            if self.in_bubble == False and len(self.starts) != len(self.finishes):
+                # put the current time in the finishes list
+                self.finishes.append(time.time())
+                # get the length of the bubble
+                length = self.bubble_length(
+                    self.speed,
+                    self.starts[self.bubble_count - 1],
+                    self.finishes[self.bubble_count - 1]
+                )
+                # get the volume of the bubble
+                volume = self.bubble_volume(length, self.internal_d)
+                # add volume to total volume counter
+                self.bubble_volume_total += self.cubic_in_to_liters(volume)
+                # print(volume)
 
-                # get abv of the beer
-                self.abv = self.vol_co2_to_abv(self.bubble_volume_total, self.fermentation_volume)
-                # print("starts: ", len(starts))
-                # print("finishes: ", len(finishes))
-                if self.in_bubble:
-                    print("total Co2 volume (L): ", bubble_volume_total)
-                    print("bubble_rate (bubbles/s): ", rate)
-                    print("abv (%): ", abv)
-                else:
-                    print("Not in bubble.")
+            # get avg bubble rate over the entire session
+            # could be improved by looking at a rolling average
+            self.bubble_rate = self.bubble_rate(30)
+
+            # get abv of the beer
+            self.abv = self.vol_co2_to_abv(self.bubble_volume_total, self.fermentation_volume)
+            # print("starts: ", len(starts))
+            # print("finishes: ", len(finishes))
+            if self.in_bubble:
+                print("total Co2 volume (L): ", bubble_volume_total)
+                print("bubble_rate (bubbles/s): ", rate)
+                print("abv (%): ", abv)
+            else:
+                print("Not in bubble.")
 
 
 ############################
