@@ -30,9 +30,6 @@ class Murano(threading.Thread, Device):
         Device.__init__(self, "Gasholes-v1", 'gasholes.cfg')
         self.q_in = Queue.Queue()
         self._kill = False
-        if WORKING_ON_BEAGLEBONE:
-            print("Setting up ADC for beaglebone...")
-            ADC.setup()
 
     def run(self):
         print("Starting exosite thread...")
@@ -47,6 +44,9 @@ class PhotoDiode(threading.Thread):
         self.name = self.__class__.__name__
         self.q_out = Queue.Queue()
         self._kill = False
+        if WORKING_ON_BEAGLEBONE:
+            print("Setting up ADC for beaglebone...")
+            ADC.setup()
 
     def _read(self):
         if WORKING_ON_BEAGLEBONE:
