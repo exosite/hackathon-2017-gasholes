@@ -30,6 +30,8 @@ class Murano(threading.Thread, Device):
         Device.__init__(self, "Gasholes-v1", 'gasholes.cfg')
         self.q_in = Queue.Queue()
         self._kill = False
+        if WORKING_ON_BEAGLEBONE:
+            ADC.setup()
 
     def run(self):
         print("Starting exosite thread...")
@@ -47,8 +49,9 @@ class PhotoDiode(threading.Thread):
 
     def _read(self):
         if WORKING_ON_BEAGLEBONE:
-            ADC.setup()
-            return ADC.read('P9_40')
+            val = ADC.read('P9_40')
+            print("Reading from beaglebone: {}".format(val))
+            return val
         return hat.analog.one.read()
 
     def get_nominal_level(self):
