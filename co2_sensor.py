@@ -74,7 +74,7 @@ class PhotoDiode(threading.Thread):
         while not self._kill:
             val = self._read()
             if WORKING_ON_BEAGLEBONE:
-                multiplier = 0.8
+                multiplier = 0.9
             else:
                 multiplier = 0.9
             if val <= nominal_level * multiplier:
