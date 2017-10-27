@@ -1,10 +1,41 @@
 #!/usr/bin/env python
 
+# pylint: disable=C0325,R0201,C0111
+
 import automationhat as hat
 import threading, Queue
 
 import time
 import math
+
+from exo.api import ExositeAPI
+
+class Murano(threading.Thread, ExositeAPI):
+    # total co2 volume
+    # abv
+    # beer temp
+    # bubble rate
+    # bubble total
+    # start time
+    # brew volume
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.setDaemon(True)
+        self.name = self.__class__.__name__
+
+        exo_args = {
+            "host": "e196r78puegao0000.m2.exosite.io",
+        }
+
+        ExositeAPI.__init__(self, exo_args)
+        self.q_in = Queue.Queue()
+        self._kill = False
+
+    def run(self):
+        print("Starting exosite thread...")
+        while not self._kill:
+            print("Murano write status: {}".format(self.http_write('raw_data', self.q_in.get())))
+
 class PhotoDiode(threading.Thread):
 
     def __init__(self):
@@ -19,7 +50,7 @@ class PhotoDiode(threading.Thread):
 
     def get_nominal_level(self):
         level = 0.0
-        for i in range(0,150):
+        for _ in range(0, 150):
             tmp = self._read()
             time.sleep(0.01)
             if tmp > self._read():
@@ -32,7 +63,7 @@ class PhotoDiode(threading.Thread):
         nominal_level = self.get_nominal_level()
         while not self._kill:
             val = self._read()
-            if val <= nominal_level * 0.8:
+            if val <= nominal_level * 0.9:
 		# print("Found bubble")
                 self.q_out.put(True)
             else:
@@ -46,7 +77,7 @@ class PhotoDiode(threading.Thread):
 
 
 class Bubble(threading.Thread):
-    def __init__(self, frmtn_vol):
+    def __init__(self, frmtn_vol, murano_thread_q):
         threading.Thread.__init__(self)
         self.setDaemon(True)
         self.name = self.__class__.__name__
@@ -75,6 +106,7 @@ class Bubble(threading.Thread):
         self.fermentation_volume = frmtn_vol
         self.abv = 0
         self.q_in = Queue.Queue()
+        self.murano_thread_q = murano_thread_q
         self._kill = False
         print("Bubble thread initialized...")
 
@@ -157,6 +189,17 @@ class Bubble(threading.Thread):
                 print("total Co2 volume (L): ", self.bubble_volume_total)
                 print("bubble_rate (bubbles/s): ", rate)
                 print("abv (%): ", self.abv)
+                self.murano_thread_q.put(
+                    {
+                        "beer_temperature": "nothing yet",
+                        "co2_volume": self.bubble_volume_total,
+                        "abv": self.abv,
+                        "bubble_rate": rate,
+                        "bubble_total": self.bubble_count,
+                        "start_time": self.system_start,
+                        "brew_volume": self.fermentation_volume
+                    }
+                )
 
 
 ############################
@@ -166,20 +209,24 @@ def main(vol):
     photosensor = PhotoDiode()
     photosensor.start()
 
-    bubble = Bubble(vol)
+    murano = Murano()
+    murano.start()
+
+    bubble = Bubble(vol, murano.q_in)
     bubble.start()
+
+
     try:
         while True:
             try:
                 bubble.q_in.put(photosensor.q_out.get(timeout=1.0))
-                # print("main: active threads: {}".format([ (t.name, t.is_alive()) for t in threading.enumerate()]))
             except Queue.Empty:
-                # print("No data")
                 continue
     except KeyboardInterrupt:
         photosensor._kill = True
         bubble._kill = True
+        murano._kill = True
 
 if __name__ == '__main__':
-    fermentation_volume = input("What is the fermentation volume (in Liters)? ")
-    main(fermentation_volume)
+    ferm_vol = input("What is the fermentation volume (in Liters)? ")
+    main(ferm_vol)
