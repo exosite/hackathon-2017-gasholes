@@ -12,6 +12,7 @@ import threading, Queue
 
 import time
 import math
+import json
 
 from exo.device import Device
 
@@ -52,7 +53,7 @@ class PhotoDiode(threading.Thread):
 
     def _read(self):
         if WORKING_ON_BEAGLEBONE:
-            val = ADC.read('P9_40')
+            val = ADC.read('P9_39')
             # print("Reading from beaglebone: {}".format(val))
             return val
         return hat.analog.one.read()
@@ -73,7 +74,7 @@ class PhotoDiode(threading.Thread):
         while not self._kill:
             val = self._read()
             if WORKING_ON_BEAGLEBONE:
-                multiplier = 0.5
+                multiplier = 0.8
             else:
                 multiplier = 0.9
             if val <= nominal_level * multiplier:
@@ -202,16 +203,20 @@ class Bubble(threading.Thread):
                 print("total Co2 volume (L): ", self.bubble_volume_total)
                 print("bubble_rate (bubbles/s): ", rate)
                 print("abv (%): ", self.abv)
-                self.murano_thread_q.put(
+                if WORKING_ON_BEAGLEBONE:
+                    beer_temp = ADC.read('P9_37')
+                else:
+                    beer_temp = hat.analog.one.read()
+                self.murano_thread_q.put(json.dumps(
                     {
-                        "beer_temperature": "nothing yet",
+                        "beer_temperature": beer_temp,
                         "co2_volume": self.bubble_volume_total,
                         "abv": self.abv,
                         "bubble_rate": rate,
                         "bubble_total": self.bubble_count,
                         "start_time": self.system_start,
                         "brew_volume": self.fermentation_volume
-                    }
+                    })
                 )
 
 
