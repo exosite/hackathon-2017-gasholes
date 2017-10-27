@@ -29,6 +29,7 @@ class Murano(threading.Thread, Device):
         self.name = self.__class__.__name__
         Device.__init__(self, "Gasholes-v1", 'gasholes.cfg')
         self.activate_device()
+        print("Got cik: {}".format(self.cik()))
         self.q_in = Queue.Queue()
         self._kill = False
 
